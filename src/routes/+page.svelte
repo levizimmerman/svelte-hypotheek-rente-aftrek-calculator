@@ -18,7 +18,7 @@ import Input from "../lib/components/input/input.svelte";
     let taxRate = getTaxRateBySalary(salary);
     let showCalc = false;
     let toggleMarleenMode = false;
-    $: fontFamily = toggleMarleenMode ? 'Comic Sans MS' : 'Helvetica';
+    $: fontFamily = toggleMarleenMode ? `"Comic Sans MS", "Comic Sans", serif` : 'Helvetica';
     $: mortgageCostPerYear = mortgage / 100 * mortgageInterest;
     $: incomeMinusMortgageCostPerYear = salary - mortgageCostPerYear;
     $: taxableIncome = salary / 100 * taxRate;
