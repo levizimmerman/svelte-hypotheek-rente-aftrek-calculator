@@ -157,6 +157,10 @@ import Input from "../lib/components/input/input.svelte";
     }
     h1 {
         text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.1rem;
+        font-size: 2rem;
+        margin: 0 auto;
     }
     .bold {
         font-weight: bold;
@@ -185,5 +189,18 @@ import Input from "../lib/components/input/input.svelte";
     .right {
         position: absolute;
         right: -1.5rem;
+    }
+    @media screen and (max-width: 36rem) {
+        h1 {
+            font-size: 1.25rem;
+        }
+        :global(body) {
+            font-size: 1rem;
+        }
+        .show-calc  {
+            font-size: 0.75rem;
+            padding: 0.75rem;
+            white-space: nowrap;
+        }
     }
 </style>

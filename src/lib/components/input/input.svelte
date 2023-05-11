@@ -24,6 +24,11 @@
         max-width: 10ch;
         text-align: right;
     }
+    @media screen and (max-width: 36rem) {
+        .input {
+            font-size: 1rem;
+        }
+    }
     .input:hover {
         background-color: rgba(255,255,255,0.05);
     }
