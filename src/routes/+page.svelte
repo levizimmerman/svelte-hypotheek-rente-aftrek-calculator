@@ -74,7 +74,7 @@
 	let showCalc = persistBoolean('showCalc', false);
 	let darkMode = persistBoolean('darkMode', false);
     let analytics: Analytics;
-    let logEvent: any;
+    let logEvent = () => {};
 	$: fontFamily = 'Poppins, sans-serif';
 	$: mortgageCostPerYear = ($mortgage / 100) * $mortgageInterest;
 	$: incomeMinusMortgageCostPerYear = $salary - mortgageCostPerYear;
