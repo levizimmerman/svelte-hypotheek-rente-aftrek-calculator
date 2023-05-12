@@ -130,8 +130,8 @@
         if (!isClient) {
             return;
         }
-		const firebase = initFirebase();
-		analytics = firebase.analytics;
+		// const firebase = initFirebase();
+		// analytics = firebase.analytics;
 	});
 
 	onMount(() => {
