@@ -1,5 +1,6 @@
-<script>
+<script lang="ts">
     import { logEvent } from "firebase/analytics";
+    import type { Analytics } from "firebase/analytics";
 	import Collapsible from '../lib/components/collapsible/collapsible.svelte';
 	import Input from '../lib/components/input/input.svelte';
 	import Label from '../lib/components/label/label.svelte';
@@ -9,7 +10,7 @@
 	import { onMount } from "svelte";
 	import { initFirebase } from "$lib/tools/firebase";
 
-	const getTaxRateBySalary = (_salary) => {
+	const getTaxRateBySalary = (_salary: number) => {
 		if (_salary < 69399) {
 			return 37.07;
 		}
@@ -20,7 +21,7 @@
 	let salary = 60000;
 	let taxRate = getTaxRateBySalary(salary);
 	let showCalc = true;
-    let analytics;
+    let analytics: Analytics;
 	let housePrice = 400000;
 	const realEstateTax = 0.5;
 	$: fontFamily = 'Poppins, sans-serif';
@@ -35,31 +36,35 @@
         analytics = firebase.analytics;
     });
 	
-    const formatPrice = (num) => {
+    const formatPrice = (num: number) => {
 		return Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(num);
 	};
-	const formatPercentage = (num) => {
+	const formatPercentage = (num: number) => {
 		return Intl.NumberFormat('nl-NL', {
 			style: 'percent',
 			minimumFractionDigits: 2,
 			maximumFractionDigits: 2
 		}).format(num / 100);
 	};
-	const onMortgageChange = (event) => {
-		mortgage = event.target.value;
+	const onMortgageChange = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+		mortgage = Number(target.value);
         logEvent(analytics, 'mortgage_change', { mortgage: mortgage });
 	};
-	const onMortgageInterestChange = (event) => {
-		mortgageInterest = event.target.value;
+	const onMortgageInterestChange = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+		mortgageInterest = Number(target.value);
         logEvent(analytics, 'mortgage_interest_change', { mortgageInterest: mortgageInterest });
 	};
-	const onSalaryChange = (event) => {
-		salary = event.target.value;
+	const onSalaryChange = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+		salary = Number(target.value);
 		taxRate = getTaxRateBySalary(salary);
         logEvent(analytics, 'salary_change', { salary: salary });
 	};
-	const onTaxRateChange = (event) => {
-		taxRate = event.target.value;
+	const onTaxRateChange = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+		taxRate = Number(target.value);
         logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
 	};
 </script>
@@ -68,7 +73,7 @@
 	<title>Bereken je netto maandlasten</title>
 	<meta name="description" content="Bereken je netto maandlasten op basis van je hypotheek." />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="true" />
 	<link
 		href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;700&display=swap"
 		rel="stylesheet"

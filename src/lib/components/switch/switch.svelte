@@ -1,6 +1,6 @@
-<script>
+<script lang="ts">
     export let toggled = false;
-    export let onToggle = () => {};
+    export let onToggle = (toggled: boolean) => {};
 </script>
 <label class="switch">
     <input type="checkbox" checked={toggled} on:change={(event) => onToggle(event.target.checked)}>

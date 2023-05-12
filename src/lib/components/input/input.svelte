@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	export let value = 0;
 	export let step = 1;
 	export let min = 0;
@@ -8,7 +8,7 @@
 	export let prefix = '';
 	export let formattedValue = '';
 	export let focused = false;
-	export let onChange = () => {};
+	export let onChange = (event: Event) => {};
 </script>
 
 <div class="wrapper">
