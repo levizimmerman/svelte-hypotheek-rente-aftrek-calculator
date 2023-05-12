@@ -13,7 +13,7 @@
 
 	const isClient = typeof window !== 'undefined';
 	const darkModeTheme = {
-		'--bg': 'tomato',
+		'--bg': '#271F59',
 		'--bg-brand': ' darkslateblue',
 		'--bg-sheet': '#333',
 		'--bg-sheet-level': '#3f3f3f',
@@ -25,7 +25,7 @@
 		'--switch-toggle': '#f5f5f5'
 	};
 	const lightModeTheme = {
-		'--bg': '#E62300',
+		'--bg': 'tomato',
 		'--bg-brand': '#483d8b',
 		'--bg-sheet': ' white',
 		'--bg-sheet-level': '#f5f5f5',
