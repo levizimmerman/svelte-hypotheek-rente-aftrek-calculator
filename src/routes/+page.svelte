@@ -13,7 +13,7 @@
 
 	const isClient = typeof window !== 'undefined';
 	const darkModeTheme = {
-		'--bg': '#271F59',
+		'--bg': 'tomato',
 		'--bg-brand': ' darkslateblue',
 		'--bg-sheet': '#333',
 		'--bg-sheet-level': '#3f3f3f',
@@ -302,7 +302,7 @@
 
 <style>
 	:root {
-		--bg: #e62300;
+		--bg: tomato;
 		--bg-brand: #483d8b;
 		--bg-sheet: white;
 		--bg-sheet-level: #f5f5f5;
