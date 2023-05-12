@@ -1,16 +1,18 @@
 <script lang="ts">
-	// import { logEvent } from 'firebase/analytics';
-	// import type { Analytics } from 'firebase/analytics';
+	import { logEvent } from 'firebase/analytics';
+	import type { Analytics } from 'firebase/analytics';
 	import Collapsible from '../lib/components/collapsible/collapsible.svelte';
 	import Input from '../lib/components/input/input.svelte';
 	import Label from '../lib/components/label/label.svelte';
 	import Row from '../lib/components/row/row.svelte';
 	import Switch from '../lib/components/switch/switch.svelte';
 	import Tooltip from '../lib/components/tooltip/tooltip.svelte';
-	// import { onMount } from 'svelte';
-	// import { initFirebase } from '../lib/tools/firebase';
+	import { onMount } from 'svelte';
+	import { initFirebase } from '../lib/tools/firebase';
 	import CalculationRow from '$lib/components/calculation-row/calculation-row.svelte';
+	import { writable } from 'svelte/store';
 
+	const isClient = typeof window !== 'undefined';
 	const darkModeTheme = {
 		'--bg': '#271F59',
 		'--bg-brand': ' darkslateblue',
@@ -41,26 +43,44 @@
 		}
 		return 49.5;
 	};
-	let mortgage = 360000;
-	let mortgageInterest = 4;
-	let salary = 60000;
-	let taxRate = getTaxRateBySalary(salary);
-	let showCalc = false;
-	let darkMode = false;
-	// let analytics: Analytics;
-	let housePrice = 400000;
-	const realEstateTax = 0.5;
+	const getFromStorage = (key: string) => {
+		if (!isClient) {
+			return null;
+		}
+		return localStorage.getItem(key);
+	};
+	const setInStorage = (key: string, data: any) => {
+		if (!isClient) {
+			return;
+		}
+		localStorage.setItem(key, data);
+	};
+	const persistor = <T extends boolean | number | string>(key: string, initialValue: T) => {
+		const store = writable(initialValue);
+		store.subscribe((value) => {
+			setInStorage(key, value.toString());
+		});
+		return store;
+	};
+	const persistBoolean = (key: string, bool: boolean) => {
+		return persistor(key, getFromStorage(key) === 'true' || bool);
+	};
+	const persistNumber = (key: string, num: number) => {
+		return persistor(key, Number(getFromStorage(key)) || num);
+	};
+	let mortgage = persistNumber('mortgage', 300000);
+	let mortgageInterest = persistNumber('mortgageInterest', 4);
+	let salary = persistNumber('salary', 60000);
+	let taxRate = getTaxRateBySalary($salary);
+	let showCalc = persistBoolean('showCalc', false);
+	let darkMode = persistBoolean('darkMode', false);
+    let analytics: Analytics;
 	$: fontFamily = 'Poppins, sans-serif';
-	$: mortgageCostPerYear = (mortgage / 100) * mortgageInterest;
-	$: incomeMinusMortgageCostPerYear = salary - mortgageCostPerYear;
-	$: taxableIncome = (salary / 100) * taxRate;
+	$: mortgageCostPerYear = ($mortgage / 100) * $mortgageInterest;
+	$: incomeMinusMortgageCostPerYear = $salary - mortgageCostPerYear;
+	$: taxableIncome = ($salary / 100) * taxRate;
 	$: taxableIncomeAfterDeduction = (incomeMinusMortgageCostPerYear / 100) * taxRate;
 	$: taxDeduction = taxableIncome - taxableIncomeAfterDeduction;
-
-	// onMount(() => {
-	// 	const firebase = initFirebase();
-	// 	analytics = firebase.analytics;
-	// });
 
 	const formatPrice = (num: number) => {
 		return Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(num);
@@ -74,32 +94,49 @@
 	};
 	const onMortgageChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
-		mortgage = Number(target.value);
-		// logEvent(analytics, 'mortgage_change', { mortgage: mortgage });
+		mortgage.update(() => Number(target.value));
+		logEvent(analytics, 'mortgage_change', { mortgage: mortgage });
 	};
 	const onMortgageInterestChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
-		mortgageInterest = Number(target.value);
-		// logEvent(analytics, 'mortgage_interest_change', { mortgageInterest: mortgageInterest });
+		mortgageInterest.update(() => Number(target.value));
+		logEvent(analytics, 'mortgage_interest_change', { mortgageInterest: mortgageInterest });
 	};
 	const onSalaryChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
-		salary = Number(target.value);
-		taxRate = getTaxRateBySalary(salary);
-		// logEvent(analytics, 'salary_change', { salary: salary });
+		salary.update(() => Number(target.value));
+		taxRate = getTaxRateBySalary($salary);
+		logEvent(analytics, 'salary_change', { salary: salary });
 	};
 	const onTaxRateChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		taxRate = Number(target.value);
-		// logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
+		logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
 	};
-	const onThemeToggle = () => {
-		darkMode = !darkMode;
-		const theme = darkMode ? darkModeTheme : lightModeTheme;
+	const setTheme = (theme: Record<string, string>) => {
+        if (!isClient) {
+            return;
+        }
 		Object.entries(theme).forEach(([key, value]) => {
 			document.documentElement.style.setProperty(key, value);
 		});
 	};
+	const onThemeToggle = () => {
+		darkMode.update(() => !$darkMode);
+		const theme = $darkMode ? darkModeTheme : lightModeTheme;
+		setTheme(theme);
+	};
+    onMount(() => {
+        if (!isClient) {
+            return;
+        }
+		const firebase = initFirebase();
+		analytics = firebase.analytics;
+	});
+
+	onMount(() => {
+		setTheme($darkMode ? darkModeTheme : lightModeTheme);
+	});
 </script>
 
 <svelte:head>
@@ -125,9 +162,9 @@
 						<Label forInput="hypotheek">Hypotheek</Label>
 						<Input
 							id="hypotheek"
-							value={mortgage}
+							value={$mortgage}
 							step={1000}
-							formattedValue={formatPrice(mortgage)}
+							formattedValue={formatPrice($mortgage)}
 							onChange={onMortgageChange}
 							jumpTo="hypotheekrente"
 						/>
@@ -137,9 +174,9 @@
 						<Input
 							id="hypotheekrente"
 							step={0.1}
-							value={mortgageInterest}
+							value={$mortgageInterest}
 							onChange={onMortgageInterestChange}
-							formattedValue={formatPercentage(mortgageInterest)}
+							formattedValue={formatPercentage($mortgageInterest)}
 							jumpTo="jaarsalaris"
 						/>
 					</Row>
@@ -147,10 +184,10 @@
 						<Label forInput="jaarsalaris">Jaarsalaris</Label>
 						<Input
 							id="jaarsalaris"
-							value={salary}
+							value={$salary}
 							step={100}
 							onChange={onSalaryChange}
-							formattedValue={formatPrice(salary)}
+							formattedValue={formatPrice($salary)}
 							jumpTo="inkomstenbelasting"
 						/>
 					</Row>
@@ -168,11 +205,11 @@
 				</form>
 			</div>
 			<div class="bottom" id="bottom">
-				<Collapsible collapsed={!showCalc}>
+				<Collapsible collapsed={!$showCalc}>
 					<CalculationRow>
 						<p class="bold" slot="label">Inkomstenbelasting zonder renteaftrek</p>
 						<div slot="calc">
-							<Tooltip tip="Jaarsalaris">{formatPrice(salary)}</Tooltip> * <Tooltip
+							<Tooltip tip="Jaarsalaris">{formatPrice($salary)}</Tooltip> * <Tooltip
 								tip="Inkomstenbelasting">{formatPercentage(taxRate)}</Tooltip
 							>
 						</div>
@@ -183,8 +220,8 @@
 					<CalculationRow>
 						<p class="bold" slot="label">Kosten hypotheekrente per jaar</p>
 						<div slot="calc">
-							<Tooltip tip="Hypotheek">{formatPrice(mortgage)}</Tooltip> * <Tooltip
-								tip="Hypotheekrente">{formatPercentage(mortgageInterest)}</Tooltip
+							<Tooltip tip="Hypotheek">{formatPrice($mortgage)}</Tooltip> * <Tooltip
+								tip="Hypotheekrente">{formatPercentage($mortgageInterest)}</Tooltip
 							>
 						</div>
 						<div slot="outcome">
@@ -197,7 +234,7 @@
 						<p class="bold" slot="label">Inkomstenbelasting met renteaftrek</p>
 						<div slot="calc">
 							<div>
-								<Tooltip tip="Jaarsalaris">{formatPrice(salary)}</Tooltip> - <Tooltip
+								<Tooltip tip="Jaarsalaris">{formatPrice($salary)}</Tooltip> - <Tooltip
 									tip="Hypotheekrente kosten per jaar">{formatPrice(mortgageCostPerYear)}</Tooltip
 								>
 							</div>
@@ -222,7 +259,7 @@
 						</div>
 					</CalculationRow>
 				</Collapsible>
-				<CalculationRow {showCalc}>
+				<CalculationRow showCalc={$showCalc}>
 					<p class="bold" slot="label">Totale hypotheekrenteaftrek</p>
 					<div slot="calc">
 						<Tooltip tip="Belastbaar inkomen">{formatPrice(taxableIncome)}</Tooltip> - <Tooltip
@@ -231,11 +268,11 @@
 						>
 					</div>
 					<div slot="outcome">
-						{#if showCalc}= {/if}
+						{#if $showCalc}= {/if}
 						<Tooltip tip="Belastingvoordeel">{formatPrice(taxDeduction)}</Tooltip>
 					</div>
 				</CalculationRow>
-				<CalculationRow {showCalc}>
+				<CalculationRow showCalc={$showCalc}>
 					<p class="bold" slot="label">Verschil bruto en netto per maand</p>
 					<div slot="calc">
 						<Tooltip tip="Belastingvoordeel">{formatPrice(taxDeduction)}</Tooltip> / <Tooltip
@@ -243,7 +280,7 @@
 						>
 					</div>
 					<div slot="outcome" class="per-month-outcome">
-						{#if showCalc}= {/if}
+						{#if $showCalc}= {/if}
 						<Tooltip tip="Belasting voordeel per maand">{formatPrice(taxDeduction / 12)}</Tooltip
 						><span class="per-month-label">per maand</span>
 					</div>
@@ -251,19 +288,19 @@
 				<div class="show-calc">
 					<label for="toggle"
 						>{#if showCalc}Verberg berekening{:else}Toon berekening{/if}</label
-					><Switch onToggle={(on) => (showCalc = on)} id="toggle" toggled={showCalc} />
+					><Switch onToggle={(on) => showCalc.update(() => on)} id="toggle" toggled={$showCalc} />
 				</div>
 			</div>
 		</div>
 	</div>
 	<button type="button" class="theme-toggle" on:click={onThemeToggle}
-		>{darkMode ? '🌝' : '🌚'}</button
+		>{$darkMode ? '🌝' : '🌚'}</button
 	>
 </div>
 
 <style>
 	:root {
-		--bg: #E62300;
+		--bg: #e62300;
 		--bg-brand: #483d8b;
 		--bg-sheet: white;
 		--bg-sheet-level: #f5f5f5;
