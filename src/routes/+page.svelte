@@ -1,25 +1,13 @@
 <script>
-    import { initializeApp } from 'firebase/app';
-    import { getAnalytics, logEvent } from "firebase/analytics";
+    import { logEvent } from "firebase/analytics";
 	import Collapsible from '../lib/components/collapsible/collapsible.svelte';
 	import Input from '../lib/components/input/input.svelte';
 	import Label from '../lib/components/label/label.svelte';
 	import Row from '../lib/components/row/row.svelte';
 	import Switch from '../lib/components/switch/switch.svelte';
 	import Tooltip from '../lib/components/tooltip/tooltip.svelte';
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyBrsKPtuEzPKr1UyDdSYhifezQrnxGZWGk",
-        authDomain: "berekenjenettomaandlasten.firebaseapp.com",
-        projectId: "berekenjenettomaandlasten",
-        storageBucket: "berekenjenettomaandlasten.appspot.com",
-        messagingSenderId: "1048161735196",
-        appId: "1:1048161735196:web:b6ce2bd2d8c7e9b913c5d9",
-        measurementId: "G-DLW1F688TN"
-    };
-
-    const firebaseApp = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(firebaseApp);
+	import { onMount } from "svelte";
+	import { initFirebase } from "$lib/tools/firebase";
 
 	const getTaxRateBySalary = (_salary) => {
 		if (_salary < 69399) {
@@ -32,6 +20,7 @@
 	let salary = 60000;
 	let taxRate = getTaxRateBySalary(salary);
 	let showCalc = true;
+    let analytics;
 	let housePrice = 400000;
 	const realEstateTax = 0.5;
 	$: fontFamily = 'Poppins, sans-serif';
@@ -40,7 +29,13 @@
 	$: taxableIncome = (salary / 100) * taxRate;
 	$: taxableIncomeAfterDeduction = (incomeMinusMortgageCostPerYear / 100) * taxRate;
 	$: taxDeduction = taxableIncome - taxableIncomeAfterDeduction;
-	const formatPrice = (num) => {
+
+    onMount(() => {
+        const firebase = initFirebase();
+        analytics = firebase.analytics;
+    });
+	
+    const formatPrice = (num) => {
 		return Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(num);
 	};
 	const formatPercentage = (num) => {
