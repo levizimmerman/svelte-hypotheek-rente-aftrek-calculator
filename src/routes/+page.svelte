@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Analytics, logEvent as LogEventType } from 'firebase/analytics';
+	import type { Analytics } from 'firebase/analytics';
 	import Collapsible from '../lib/components/collapsible/collapsible.svelte';
 	import Input from '../lib/components/input/input.svelte';
 	import Label from '../lib/components/label/label.svelte';
@@ -74,7 +74,7 @@
 	let showCalc = persistBoolean('showCalc', false);
 	let darkMode = persistBoolean('darkMode', false);
     let analytics: Analytics;
-    let logEvent: typeof LogEventType;
+    let logEvent: any;
 	$: fontFamily = 'Poppins, sans-serif';
 	$: mortgageCostPerYear = ($mortgage / 100) * $mortgageInterest;
 	$: incomeMinusMortgageCostPerYear = $salary - mortgageCostPerYear;
