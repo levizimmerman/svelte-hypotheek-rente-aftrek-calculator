@@ -1,14 +1,15 @@
 <script lang="ts">
-    import { logEvent } from "firebase/analytics";
-    import type { Analytics } from "firebase/analytics";
+	import { logEvent } from 'firebase/analytics';
+	import type { Analytics } from 'firebase/analytics';
 	import Collapsible from '../lib/components/collapsible/collapsible.svelte';
 	import Input from '../lib/components/input/input.svelte';
 	import Label from '../lib/components/label/label.svelte';
 	import Row from '../lib/components/row/row.svelte';
 	import Switch from '../lib/components/switch/switch.svelte';
 	import Tooltip from '../lib/components/tooltip/tooltip.svelte';
-	import { onMount } from "svelte";
-	import { initFirebase } from "../lib/tools/firebase";
+	import { onMount } from 'svelte';
+	import { initFirebase } from '../lib/tools/firebase';
+	import CalculationRow from '$lib/components/calculation-row/calculation-row.svelte';
 
 	const getTaxRateBySalary = (_salary: number) => {
 		if (_salary < 69399) {
@@ -20,8 +21,8 @@
 	let mortgageInterest = 4;
 	let salary = 60000;
 	let taxRate = getTaxRateBySalary(salary);
-	let showCalc = true;
-    let analytics: Analytics;
+	let showCalc = false;
+	let analytics: Analytics;
 	let housePrice = 400000;
 	const realEstateTax = 0.5;
 	$: fontFamily = 'Poppins, sans-serif';
@@ -31,12 +32,12 @@
 	$: taxableIncomeAfterDeduction = (incomeMinusMortgageCostPerYear / 100) * taxRate;
 	$: taxDeduction = taxableIncome - taxableIncomeAfterDeduction;
 
-    onMount(() => {
-        const firebase = initFirebase();
-        analytics = firebase.analytics;
-    });
-	
-    const formatPrice = (num: number) => {
+	// onMount(() => {
+	// 	const firebase = initFirebase();
+	// 	analytics = firebase.analytics;
+	// });
+
+	const formatPrice = (num: number) => {
 		return Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(num);
 	};
 	const formatPercentage = (num: number) => {
@@ -47,25 +48,25 @@
 		}).format(num / 100);
 	};
 	const onMortgageChange = (event: Event) => {
-        const target = event.target as HTMLInputElement;
+		const target = event.target as HTMLInputElement;
 		mortgage = Number(target.value);
-        logEvent(analytics, 'mortgage_change', { mortgage: mortgage });
+		// logEvent(analytics, 'mortgage_change', { mortgage: mortgage });
 	};
 	const onMortgageInterestChange = (event: Event) => {
-        const target = event.target as HTMLInputElement;
+		const target = event.target as HTMLInputElement;
 		mortgageInterest = Number(target.value);
-        logEvent(analytics, 'mortgage_interest_change', { mortgageInterest: mortgageInterest });
+		// logEvent(analytics, 'mortgage_interest_change', { mortgageInterest: mortgageInterest });
 	};
 	const onSalaryChange = (event: Event) => {
-        const target = event.target as HTMLInputElement;
+		const target = event.target as HTMLInputElement;
 		salary = Number(target.value);
 		taxRate = getTaxRateBySalary(salary);
-        logEvent(analytics, 'salary_change', { salary: salary });
+		// logEvent(analytics, 'salary_change', { salary: salary });
 	};
 	const onTaxRateChange = (event: Event) => {
-        const target = event.target as HTMLInputElement;
+		const target = event.target as HTMLInputElement;
 		taxRate = Number(target.value);
-        logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
+		// logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
 	};
 </script>
 
@@ -130,76 +131,85 @@
 			</div>
 			<div class="bottom">
 				<Collapsible collapsed={!showCalc}>
-					<p class="bold">
-						Inkomstenbelasting Zonder renteaftrek bedraagt de totale inkomstenbelasting
-					</p>
-					<ul>
-						<li>
+					<CalculationRow>
+						<p class="bold" slot="label">Inkomstenbelasting zonder renteaftrek</p>
+						<div slot="calc">
 							<Tooltip tip="Jaarsalaris">{formatPrice(salary)}</Tooltip> * <Tooltip
 								tip="Inkomstenbelasting">{formatPercentage(taxRate)}</Tooltip
-							> = <Tooltip tip="Belastbaar inkomen">{formatPrice(taxableIncome)}</Tooltip>.
-						</li>
-					</ul>
-					<p class="bold">Kosten hypotheekrente per jaar</p>
-					<ul>
-						<li>
+							>
+						</div>
+						<div slot="outcome">
+							= <Tooltip tip="Belastbaar inkomen">{formatPrice(taxableIncome)}</Tooltip>
+						</div>
+					</CalculationRow>
+					<CalculationRow>
+						<p class="bold" slot="label">Kosten hypotheekrente per jaar</p>
+						<div slot="calc">
 							<Tooltip tip="Hypotheek">{formatPrice(mortgage)}</Tooltip> * <Tooltip
 								tip="Hypotheekrente">{formatPercentage(mortgageInterest)}</Tooltip
-							> = <Tooltip tip="Hypotheekrente kosten per jaar"
-								>{formatPrice(mortgageCostPerYear)}</Tooltip
-							>.
-						</li>
-					</ul>
-					<p class="bold">Met renteaftrek bedraagt de inkomstenbelasting:</p>
-					<ul>
-						<li>
-							<Tooltip tip="Jaarsalaris">{formatPrice(salary)}</Tooltip> - <Tooltip
-								tip="Hypotheekrente kosten per jaar">{formatPrice(mortgageCostPerYear)}</Tooltip
-							> = <Tooltip
-								tip="Belastbaar inkomen met aftrek van de hypotheek rente kosten per jaar"
-								>{formatPrice(incomeMinusMortgageCostPerYear)}</Tooltip
-							><br />
-						</li>
-						<li>
-							<Tooltip tip="Belastbaar inkomen met aftrek van de hypotheek rente kosten per jaar"
-								>{formatPrice(incomeMinusMortgageCostPerYear)}</Tooltip
-							> * <Tooltip tip="Inkomstenbelasting">{formatPercentage(taxRate)}</Tooltip> = <Tooltip
-								tip="Belastbaar inkomen na hypotheekrenteaftrek"
-								>{formatPrice(taxableIncomeAfterDeduction)}</Tooltip
 							>
-						</li>
-					</ul>
+						</div>
+						<div slot="outcome">
+							= <Tooltip tip="Hypotheekrente kosten per jaar"
+								>{formatPrice(mortgageCostPerYear)}</Tooltip
+							>
+						</div>
+					</CalculationRow>
+					<CalculationRow>
+						<p class="bold" slot="label">Inkomstenbelasting met renteaftrek</p>
+						<div slot="calc">
+							<div>
+								<Tooltip tip="Jaarsalaris">{formatPrice(salary)}</Tooltip> - <Tooltip
+									tip="Hypotheekrente kosten per jaar">{formatPrice(mortgageCostPerYear)}</Tooltip
+								>
+							</div>
+							<div>
+								<Tooltip tip="Belastbaar inkomen met aftrek van de hypotheek rente kosten per jaar"
+									>{formatPrice(incomeMinusMortgageCostPerYear)}</Tooltip
+								> * <Tooltip tip="Inkomstenbelasting">{formatPercentage(taxRate)}</Tooltip>
+							</div>
+						</div>
+						<div slot="outcome">
+							<div class="nowrap">
+								= <Tooltip
+									tip="Belastbaar inkomen met aftrek van de hypotheek rente kosten per jaar"
+									>{formatPrice(incomeMinusMortgageCostPerYear)}</Tooltip
+								>
+							</div>
+							<div class="nowrap">
+								= <Tooltip tip="Belastbaar inkomen na hypotheekrenteaftrek"
+									>{formatPrice(taxableIncomeAfterDeduction)}</Tooltip
+								>
+							</div>
+						</div>
+					</CalculationRow>
 				</Collapsible>
-				<p class="bold">Totale hypotheekrenteaftrek:</p>
-				<ul>
-					{#if showCalc}
-						<li>
-							<Tooltip tip="Belastbaar inkomen">{formatPrice(taxableIncome)}</Tooltip> - <Tooltip
-								tip="Belastbaar inkomen na hypotheekrenteaftrek"
-								>{formatPrice(taxableIncomeAfterDeduction)}</Tooltip
-							> = <Tooltip tip="Belastingvoordeel">{formatPrice(taxDeduction)}</Tooltip>
-						</li>
-					{:else}
-						<li><Tooltip tip="Belastingvoordeel">{formatPrice(taxDeduction)}</Tooltip></li>
-					{/if}
-				</ul>
-				<p class="bold">Het verschil tussen de bruto en netto maandlast bedraagt dus:</p>
-				<ul>
-					{#if showCalc}
-						<li>
-							<Tooltip tip="Belastingvoordeel">{formatPrice(taxDeduction)}</Tooltip> / <Tooltip
-								tip="Aantal maanden in het jaar">12</Tooltip
-							> = ~<Tooltip tip="Belasting voordeel per maand"
-								>{formatPrice(taxDeduction / 12)}</Tooltip
-							> per maand.
-						</li>
-					{:else}
-						<li>
-							~<Tooltip tip="Belasting voordeel per maand">{formatPrice(taxDeduction / 12)}</Tooltip
-							> per maand.
-						</li>
-					{/if}
-				</ul>
+				<CalculationRow {showCalc}>
+					<p class="bold" slot="label">Totale hypotheekrenteaftrek</p>
+					<div slot="calc">
+						<Tooltip tip="Belastbaar inkomen">{formatPrice(taxableIncome)}</Tooltip> - <Tooltip
+							tip="Belastbaar inkomen na hypotheekrenteaftrek"
+							>{formatPrice(taxableIncomeAfterDeduction)}</Tooltip
+						>
+					</div>
+					<div slot="outcome">
+						{#if showCalc}= {/if}
+						<Tooltip tip="Belastingvoordeel">{formatPrice(taxDeduction)}</Tooltip>
+					</div>
+				</CalculationRow>
+				<CalculationRow {showCalc}>
+					<p class="bold" slot="label">Verschil bruto en netto per maand</p>
+					<div slot="calc">
+						<Tooltip tip="Belastingvoordeel">{formatPrice(taxDeduction)}</Tooltip> / <Tooltip
+							tip="Aantal maanden in het jaar">12</Tooltip
+						>
+					</div>
+					<div slot="outcome" class="per-month-outcome">
+						{#if showCalc}= {/if}
+						<Tooltip tip="Belasting voordeel per maand">{formatPrice(taxDeduction / 12)}</Tooltip
+						><span class="per-month-label">per maand</span>
+					</div>
+				</CalculationRow>
 				<div class="show-calc">
 					{#if showCalc}Verberg berekening{:else}Toon berekening{/if}<Switch
 						onToggle={(on) => (showCalc = on)}
@@ -212,29 +222,60 @@
 </div>
 
 <style>
+	:root {
+		--bg: #ff6347;
+		--bg-brand: #483d8b;
+		--bg-sheet: white;
+		--bg-sheet-level: #f5f5f5;
+		--bg-sheet-level-border: #bbb;
+		--text-on-bg: white;
+		--text-on-brand: white;
+		--text-on-sheet: darkslateblue;
+		--switch-bg: #ccc;
+		--switch-toggle: white;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root {
+			--bg: #271F59;
+            --bg-brand: darkslateblue;
+            --bg-sheet: #333;
+            --bg-sheet-level: #3f3f3f;
+		    --bg-sheet-level-border: #666;
+            --text-on-bg: #F1EFFF;
+            --text-on-brand: #F1EFFF;
+            --text-on-sheet: #F1EFFF;
+            --switch-bg: #777;
+            --switch-toggle: #f5f5f5;
+		}
+	}
 	:global(body) {
-		background-color: tomato;
-		color: white;
+		background-color: var(--bg);
+		color: var(--text-on-bg);
 		text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.15);
 		font-size: 1.2rem;
+	}
+	.per-month-outcome {
+		position: relative;
+	}
+	.per-month-label {
+		position: absolute;
+		top: 100%;
+		font-size: 0.8rem;
+		white-space: nowrap;
+		right: 0;
 	}
 	.page {
 		font-family: var(--font-family);
 	}
-	li + li {
-		margin-top: 1rem;
-	}
-	ul {
-		list-style-position: inside;
-		list-style-type: circle;
-		padding: 0;
+	.nowrap {
+		white-space: nowrap;
 	}
 	.show-calc {
 		position: absolute;
 		top: 0;
 		transform: translate(-50%, -50%);
 		left: 50%;
-		background-color: white;
+		background-color: var(--bg-sheet);
 		padding: 1rem;
 		border-radius: 50px;
 		font-size: 1rem;
@@ -254,6 +295,7 @@
 		letter-spacing: 0.1rem;
 		font-size: 2rem;
 		margin: 2rem auto;
+		padding: 0 2rem;
 	}
 	.bold {
 		font-weight: bold;
@@ -262,28 +304,29 @@
 	.card {
 		margin: 2rem 0;
 		box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.25);
-        border-radius: 20px;
+		border-radius: 20px;
 	}
 	.top,
 	.bottom {
 		padding: 2rem;
 	}
 	.top {
-		background-color: darkslateblue;
+		background-color: var(--bg-brand);
 		padding-bottom: 4rem;
 		border-radius: 20px 20px 0 0;
 	}
 	.bottom {
-		background-color: white;
-		color: darkslateblue;
+		background-color: var(--bg-sheet);
+		color: var(--text-on-sheet);
 		text-shadow: none;
 		position: relative;
 		padding-top: 3rem;
+		padding-bottom: 4rem;
 		border-radius: 0 0 20px 20px;
 	}
 	@media screen and (max-width: 36rem) {
 		h1 {
-			font-size: 1.25rem;
+			font-size: 1.5rem;
 		}
 		:global(body) {
 			font-size: 1rem;

@@ -15,9 +15,9 @@
         margin: 0 -2rem;
     }
     .container {
-        background: #f5f5f5;
-        border-top: 1px dashed #bbb;
-        border-bottom: 1px dashed #bbb;
+        background: var(--bg-sheet-level);
+        border-top: 1px dashed var(--bg-sheet-level-border);
+        border-bottom: 1px dashed var(--bg-sheet-level-border);
         padding: 1rem 2rem;
         box-sizing: border-box;
     }

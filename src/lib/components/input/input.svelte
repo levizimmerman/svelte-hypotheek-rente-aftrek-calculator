@@ -69,7 +69,7 @@
 		border-radius: 4px;
 		font-size: 1.5rem;
 		font-family: var(--font-family);
-		color: white;
+		color: var(--text-on-brand);
 		padding: 0.25rem 0;
 		transition: background-color 0.1s ease-in-out;
 		outline: none;
