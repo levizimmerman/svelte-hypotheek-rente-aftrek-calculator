@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { logEvent } from 'firebase/analytics';
-	import type { Analytics } from 'firebase/analytics';
+	// import { logEvent } from 'firebase/analytics';
+	// import type { Analytics } from 'firebase/analytics';
 	import Collapsible from '../lib/components/collapsible/collapsible.svelte';
 	import Input from '../lib/components/input/input.svelte';
 	import Label from '../lib/components/label/label.svelte';
 	import Row from '../lib/components/row/row.svelte';
 	import Switch from '../lib/components/switch/switch.svelte';
 	import Tooltip from '../lib/components/tooltip/tooltip.svelte';
-	import { onMount } from 'svelte';
-	import { initFirebase } from '../lib/tools/firebase';
+	// import { onMount } from 'svelte';
+	// import { initFirebase } from '../lib/tools/firebase';
 	import CalculationRow from '$lib/components/calculation-row/calculation-row.svelte';
 
 	const getTaxRateBySalary = (_salary: number) => {
@@ -22,7 +22,7 @@
 	let salary = 60000;
 	let taxRate = getTaxRateBySalary(salary);
 	let showCalc = false;
-	let analytics: Analytics;
+	// let analytics: Analytics;
 	let housePrice = 400000;
 	const realEstateTax = 0.5;
 	$: fontFamily = 'Poppins, sans-serif';
