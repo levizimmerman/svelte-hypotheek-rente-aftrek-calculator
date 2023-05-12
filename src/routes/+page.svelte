@@ -132,8 +132,8 @@
         }
 		const firebase = initFirebase();
 		analytics = firebase.analytics;
-        const module = await import('firebase/analytics');
-        logEvent = module.logEvent;
+        // const module = await import('firebase/analytics');
+        // logEvent = module.logEvent;
 	});
 
 	onMount(() => {
