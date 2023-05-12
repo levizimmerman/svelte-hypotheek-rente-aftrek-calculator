@@ -1,6 +1,5 @@
 <script lang="ts">
-	// import { logEvent } from 'firebase/analytics';
-	import type { Analytics } from 'firebase/analytics';
+	import type { Analytics, logEvent as LogEventType } from 'firebase/analytics';
 	import Collapsible from '../lib/components/collapsible/collapsible.svelte';
 	import Input from '../lib/components/input/input.svelte';
 	import Label from '../lib/components/label/label.svelte';
@@ -8,7 +7,7 @@
 	import Switch from '../lib/components/switch/switch.svelte';
 	import Tooltip from '../lib/components/tooltip/tooltip.svelte';
 	import { onMount } from 'svelte';
-	// import { initFirebase } from '../lib/tools/firebase';
+	import { initFirebase } from '../lib/tools/firebase';
 	import CalculationRow from '$lib/components/calculation-row/calculation-row.svelte';
 	import { writable } from 'svelte/store';
 
@@ -75,6 +74,7 @@
 	let showCalc = persistBoolean('showCalc', false);
 	let darkMode = persistBoolean('darkMode', false);
     let analytics: Analytics;
+    let logEvent: typeof LogEventType;
 	$: fontFamily = 'Poppins, sans-serif';
 	$: mortgageCostPerYear = ($mortgage / 100) * $mortgageInterest;
 	$: incomeMinusMortgageCostPerYear = $salary - mortgageCostPerYear;
@@ -95,23 +95,23 @@
 	const onMortgageChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		mortgage.update(() => Number(target.value));
-		// logEvent(analytics, 'mortgage_change', { mortgage: mortgage });
+		logEvent(analytics, 'mortgage_change', { mortgage: mortgage });
 	};
 	const onMortgageInterestChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		mortgageInterest.update(() => Number(target.value));
-		// logEvent(analytics, 'mortgage_interest_change', { mortgageInterest: mortgageInterest });
+		logEvent(analytics, 'mortgage_interest_change', { mortgageInterest: mortgageInterest });
 	};
 	const onSalaryChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		salary.update(() => Number(target.value));
 		taxRate = getTaxRateBySalary($salary);
-		// logEvent(analytics, 'salary_change', { salary: salary });
+		logEvent(analytics, 'salary_change', { salary: salary });
 	};
 	const onTaxRateChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		taxRate = Number(target.value);
-		// logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
+		logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
 	};
 	const setTheme = (theme: Record<string, string>) => {
         if (!isClient) {
@@ -126,12 +126,14 @@
 		const theme = $darkMode ? darkModeTheme : lightModeTheme;
 		setTheme(theme);
 	};
-    onMount(() => {
+    onMount(async () => {
         if (!isClient) {
             return;
         }
-		// const firebase = initFirebase();
-		// analytics = firebase.analytics;
+		const firebase = initFirebase();
+		analytics = firebase.analytics;
+        const module = await import('firebase/analytics');
+        logEvent = module.logEvent;
 	});
 
 	onMount(() => {
