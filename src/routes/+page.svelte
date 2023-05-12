@@ -1,4 +1,5 @@
 <script lang="ts">
+    export const ssr = false;
 	import type { Analytics } from 'firebase/analytics';
 	import Collapsible from '../lib/components/collapsible/collapsible.svelte';
 	import Input from '../lib/components/input/input.svelte';
