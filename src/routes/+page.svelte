@@ -8,7 +8,7 @@
 	import Switch from '../lib/components/switch/switch.svelte';
 	import Tooltip from '../lib/components/tooltip/tooltip.svelte';
 	import { onMount } from "svelte";
-	import { initFirebase } from "$lib/tools/firebase";
+	import { initFirebase } from "../lib/tools/firebase";
 
 	const getTaxRateBySalary = (_salary: number) => {
 		if (_salary < 69399) {
