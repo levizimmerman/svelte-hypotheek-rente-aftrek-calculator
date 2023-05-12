@@ -8,19 +8,40 @@
 	export let prefix = '';
 	export let formattedValue = '';
 	export let focused = false;
+	export let jumpTo = '';
 	export let onChange = (event: Event) => {};
+
+	const onKeyUp = (event: KeyboardEvent) => {
+		if (jumpTo.length === 0 || event.key !== 'Enter') {
+			return;
+		}
+		const nextElement = document.querySelector(`#${jumpTo}`);
+		if (!nextElement) {
+			return;
+		}
+		if (nextElement.tagName === 'INPUT') {
+			(nextElement as HTMLInputElement).focus();
+		} else {
+			(event.target as HTMLInputElement)?.blur();
+			window.scrollTo({
+				top: nextElement.getBoundingClientRect().top,
+				behavior: 'smooth'
+			});
+		}
+	};
 </script>
 
 <div class="wrapper">
 	{#if prefix.length > 0}<span class="prefix">{prefix}</span>{/if}
-    {#if !focused}
-	<input type="text" class="input formatted" value={formattedValue} disabled />
-    {/if}
-    <input
+	{#if !focused}
+		<input type="text" aria-hidden="true" class="input formatted" value={formattedValue} disabled />
+	{/if}
+	<input
 		type="number"
 		on:focus={() => (focused = true)}
 		on:blur={() => (focused = false)}
 		class="input number"
+		on:keyup={onKeyUp}
 		{id}
 		{name}
 		{value}
@@ -35,20 +56,20 @@
 	.wrapper {
 		position: relative;
 	}
-    .formatted {
-        position:absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
-    }
-    .number {
-        opacity: 0;
-    }
-    .number:focus {
-        opacity: 1;
-    }
+	.formatted {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		box-sizing: border-box;
+	}
+	.number {
+		opacity: 0;
+	}
+	.number:focus {
+		opacity: 1;
+	}
 	.prefix,
 	.suffix {
 		position: absolute;

@@ -1,7 +1,5 @@
 <script>
     export let tip = "hello";
-    let wrapper;
-    console.log('wrapper', wrapper);
 </script>
 
 <span class="wrapper">

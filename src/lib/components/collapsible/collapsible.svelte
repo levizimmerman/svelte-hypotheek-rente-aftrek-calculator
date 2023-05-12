@@ -16,6 +16,7 @@
     }
     .container {
         background: var(--bg-sheet-level);
+        transition: background-color 0.5s ease;
         border-top: 1px dashed var(--bg-sheet-level-border);
         border-bottom: 1px dashed var(--bg-sheet-level-border);
         padding: 1rem 2rem;

@@ -11,6 +11,30 @@
 	// import { initFirebase } from '../lib/tools/firebase';
 	import CalculationRow from '$lib/components/calculation-row/calculation-row.svelte';
 
+	const darkModeTheme = {
+		'--bg': '#271F59',
+		'--bg-brand': ' darkslateblue',
+		'--bg-sheet': '#333',
+		'--bg-sheet-level': '#3f3f3f',
+		'--bg-sheet-level-border': '#666',
+		'--text-on-bg': '#F1EFFF',
+		'--text-on-brand': '#F1EFFF',
+		'--text-on-sheet': '#F1EFFF',
+		'--switch-bg': '#777',
+		'--switch-toggle': '#f5f5f5'
+	};
+	const lightModeTheme = {
+		'--bg': '#E62300',
+		'--bg-brand': '#483d8b',
+		'--bg-sheet': ' white',
+		'--bg-sheet-level': '#f5f5f5',
+		'--bg-sheet-level-border': '#bbb',
+		'--text-on-bg': ' white',
+		'--text-on-brand': ' white',
+		'--text-on-sheet': ' darkslateblue',
+		'--switch-bg': '#ccc',
+		'--switch-toggle': ' white'
+	};
 	const getTaxRateBySalary = (_salary: number) => {
 		if (_salary < 69399) {
 			return 37.07;
@@ -22,6 +46,7 @@
 	let salary = 60000;
 	let taxRate = getTaxRateBySalary(salary);
 	let showCalc = false;
+	let darkMode = false;
 	// let analytics: Analytics;
 	let housePrice = 400000;
 	const realEstateTax = 0.5;
@@ -68,6 +93,13 @@
 		taxRate = Number(target.value);
 		// logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
 	};
+	const onThemeToggle = () => {
+		darkMode = !darkMode;
+		const theme = darkMode ? darkModeTheme : lightModeTheme;
+		Object.entries(theme).forEach(([key, value]) => {
+			document.documentElement.style.setProperty(key, value);
+		});
+	};
 </script>
 
 <svelte:head>
@@ -88,48 +120,54 @@
 	<div class="container">
 		<div class="card">
 			<div class="top">
-				<Row>
-					<Label forInput="hypotheek">Hypotheek</Label>
-					<Input
-						id="hypotheek"
-						value={mortgage}
-						step={1000}
-						formattedValue={formatPrice(mortgage)}
-						onChange={onMortgageChange}
-					/>
-				</Row>
-				<Row>
-					<Label forInput="hypotheekrente">Hypotheekrente</Label>
-					<Input
-						id="hypotheekrente"
-						step={0.1}
-						value={mortgageInterest}
-						onChange={onMortgageInterestChange}
-						formattedValue={formatPercentage(mortgageInterest)}
-					/>
-				</Row>
-				<Row>
-					<Label forInput="jaarsalaris">Jaarsalaris</Label>
-					<Input
-						id="jaarsalaris"
-						value={salary}
-						step={100}
-						onChange={onSalaryChange}
-						formattedValue={formatPrice(salary)}
-					/>
-				</Row>
-				<Row>
-					<Label forInput="inkomstenbelasting">Inkomstenbelasting</Label>
-					<Input
-						id="inkomstenbelasting"
-						value={taxRate}
-						step={1}
-						onChange={onTaxRateChange}
-						formattedValue={formatPercentage(taxRate)}
-					/>
-				</Row>
+				<form>
+					<Row>
+						<Label forInput="hypotheek">Hypotheek</Label>
+						<Input
+							id="hypotheek"
+							value={mortgage}
+							step={1000}
+							formattedValue={formatPrice(mortgage)}
+							onChange={onMortgageChange}
+							jumpTo="hypotheekrente"
+						/>
+					</Row>
+					<Row>
+						<Label forInput="hypotheekrente">Hypotheekrente</Label>
+						<Input
+							id="hypotheekrente"
+							step={0.1}
+							value={mortgageInterest}
+							onChange={onMortgageInterestChange}
+							formattedValue={formatPercentage(mortgageInterest)}
+							jumpTo="jaarsalaris"
+						/>
+					</Row>
+					<Row>
+						<Label forInput="jaarsalaris">Jaarsalaris</Label>
+						<Input
+							id="jaarsalaris"
+							value={salary}
+							step={100}
+							onChange={onSalaryChange}
+							formattedValue={formatPrice(salary)}
+							jumpTo="inkomstenbelasting"
+						/>
+					</Row>
+					<Row>
+						<Label forInput="inkomstenbelasting">Inkomstenbelasting</Label>
+						<Input
+							id="inkomstenbelasting"
+							value={taxRate}
+							step={1}
+							onChange={onTaxRateChange}
+							formattedValue={formatPercentage(taxRate)}
+							jumpTo="bottom"
+						/>
+					</Row>
+				</form>
 			</div>
-			<div class="bottom">
+			<div class="bottom" id="bottom">
 				<Collapsible collapsed={!showCalc}>
 					<CalculationRow>
 						<p class="bold" slot="label">Inkomstenbelasting zonder renteaftrek</p>
@@ -211,19 +249,21 @@
 					</div>
 				</CalculationRow>
 				<div class="show-calc">
-					{#if showCalc}Verberg berekening{:else}Toon berekening{/if}<Switch
-						onToggle={(on) => (showCalc = on)}
-						toggled={showCalc}
-					/>
+					<label for="toggle"
+						>{#if showCalc}Verberg berekening{:else}Toon berekening{/if}</label
+					><Switch onToggle={(on) => (showCalc = on)} id="toggle" toggled={showCalc} />
 				</div>
 			</div>
 		</div>
 	</div>
+	<button type="button" class="theme-toggle" on:click={onThemeToggle}
+		>{darkMode ? '🌝' : '🌚'}</button
+	>
 </div>
 
 <style>
 	:root {
-		--bg: #ff6347;
+		--bg: #E62300;
 		--bg-brand: #483d8b;
 		--bg-sheet: white;
 		--bg-sheet-level: #f5f5f5;
@@ -234,25 +274,30 @@
 		--switch-bg: #ccc;
 		--switch-toggle: white;
 	}
-	@media (prefers-color-scheme: dark) {
-		:root {
-			--bg: #271F59;
-            --bg-brand: darkslateblue;
-            --bg-sheet: #333;
-            --bg-sheet-level: #3f3f3f;
-		    --bg-sheet-level-border: #666;
-            --text-on-bg: #F1EFFF;
-            --text-on-brand: #F1EFFF;
-            --text-on-sheet: #F1EFFF;
-            --switch-bg: #777;
-            --switch-toggle: #f5f5f5;
-		}
-	}
 	:global(body) {
 		background-color: var(--bg);
 		color: var(--text-on-bg);
 		text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.15);
 		font-size: 1.2rem;
+		transition: background-color 0.5s ease;
+	}
+	.theme-toggle {
+		background: transparent;
+		border: none;
+		text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.25);
+		border-radius: 50px;
+		font-size: 2rem;
+		cursor: pointer;
+		transition: transform 0.5s ease;
+		position: absolute;
+		top: 2rem;
+		right: 1rem;
+	}
+	.theme-toggle:hover {
+		transform: rotate(45deg);
+	}
+	.theme-toggle:active {
+		transform: rotate(360deg);
 	}
 	.per-month-outcome {
 		position: relative;
@@ -284,6 +329,7 @@
 		align-items: center;
 		box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.15);
 		white-space: nowrap;
+		transition: background-color 0.5s ease;
 	}
 	.container {
 		max-width: 32rem;
@@ -323,6 +369,7 @@
 		padding-top: 3rem;
 		padding-bottom: 4rem;
 		border-radius: 0 0 20px 20px;
+		transition: background-color 0.5s ease;
 	}
 	@media screen and (max-width: 36rem) {
 		h1 {
