@@ -1,10 +1,26 @@
 <script>
+    import { initializeApp } from 'firebase/app';
+    import { getAnalytics, logEvent } from "firebase/analytics";
 	import Collapsible from '../lib/components/collapsible/collapsible.svelte';
 	import Input from '../lib/components/input/input.svelte';
 	import Label from '../lib/components/label/label.svelte';
 	import Row from '../lib/components/row/row.svelte';
 	import Switch from '../lib/components/switch/switch.svelte';
 	import Tooltip from '../lib/components/tooltip/tooltip.svelte';
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBrsKPtuEzPKr1UyDdSYhifezQrnxGZWGk",
+        authDomain: "berekenjenettomaandlasten.firebaseapp.com",
+        projectId: "berekenjenettomaandlasten",
+        storageBucket: "berekenjenettomaandlasten.appspot.com",
+        messagingSenderId: "1048161735196",
+        appId: "1:1048161735196:web:b6ce2bd2d8c7e9b913c5d9",
+        measurementId: "G-DLW1F688TN"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(firebaseApp);
+
 	const getTaxRateBySalary = (_salary) => {
 		if (_salary < 69399) {
 			return 37.07;
@@ -15,11 +31,10 @@
 	let mortgageInterest = 4;
 	let salary = 60000;
 	let taxRate = getTaxRateBySalary(salary);
-	let showCalc = false;
-	let toggleMarleenMode = false;
+	let showCalc = true;
 	let housePrice = 400000;
-    const realEstateTax = 0.5;
-	$: fontFamily = toggleMarleenMode ? `"Comic Sans MS", "Comic Sans", serif` : 'Helvetica';
+	const realEstateTax = 0.5;
+	$: fontFamily = 'Poppins, sans-serif';
 	$: mortgageCostPerYear = (mortgage / 100) * mortgageInterest;
 	$: incomeMinusMortgageCostPerYear = salary - mortgageCostPerYear;
 	$: taxableIncome = (salary / 100) * taxRate;
@@ -28,25 +43,41 @@
 	const formatPrice = (num) => {
 		return Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(num);
 	};
+	const formatPercentage = (num) => {
+		return Intl.NumberFormat('nl-NL', {
+			style: 'percent',
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		}).format(num / 100);
+	};
 	const onMortgageChange = (event) => {
 		mortgage = event.target.value;
+        logEvent(analytics, 'mortgage_change', { mortgage: mortgage });
 	};
 	const onMortgageInterestChange = (event) => {
-		console.log('onMortgageInterestChange');
 		mortgageInterest = event.target.value;
+        logEvent(analytics, 'mortgage_interest_change', { mortgageInterest: mortgageInterest });
 	};
 	const onSalaryChange = (event) => {
 		salary = event.target.value;
 		taxRate = getTaxRateBySalary(salary);
+        logEvent(analytics, 'salary_change', { salary: salary });
 	};
 	const onTaxRateChange = (event) => {
 		taxRate = event.target.value;
+        logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
 	};
 </script>
 
 <svelte:head>
-    <title>Bereken je netto maandlasten</title>
-    <meta name="description" content="Bereken je netto maandlasten op basis van je hypotheek." />
+	<title>Bereken je netto maandlasten</title>
+	<meta name="description" content="Bereken je netto maandlasten op basis van je hypotheek." />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;700&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 
 <div style="--font-family: {fontFamily}" class="page">
@@ -58,7 +89,13 @@
 			<div class="top">
 				<Row>
 					<Label forInput="hypotheek">Hypotheek</Label>
-					<Input id="hypotheek" value={mortgage} step={1000} onChange={onMortgageChange} />
+					<Input
+						id="hypotheek"
+						value={mortgage}
+						step={1000}
+						formattedValue={formatPrice(mortgage)}
+						onChange={onMortgageChange}
+					/>
 				</Row>
 				<Row>
 					<Label forInput="hypotheekrente">Hypotheekrente</Label>
@@ -67,25 +104,39 @@
 						step={0.1}
 						value={mortgageInterest}
 						onChange={onMortgageInterestChange}
+						formattedValue={formatPercentage(mortgageInterest)}
 					/>
-					<span class="right">%</span>
 				</Row>
 				<Row>
 					<Label forInput="jaarsalaris">Jaarsalaris</Label>
-					<Input id="jaarsalaris" value={salary} step={100} onChange={onSalaryChange} />
+					<Input
+						id="jaarsalaris"
+						value={salary}
+						step={100}
+						onChange={onSalaryChange}
+						formattedValue={formatPrice(salary)}
+					/>
 				</Row>
 				<Row>
 					<Label forInput="inkomstenbelasting">Inkomstenbelasting</Label>
-					<Input id="inkomstenbelasting" value={taxRate} step={1} onChange={onTaxRateChange} />
+					<Input
+						id="inkomstenbelasting"
+						value={taxRate}
+						step={1}
+						onChange={onTaxRateChange}
+						formattedValue={formatPercentage(taxRate)}
+					/>
 				</Row>
 			</div>
 			<div class="bottom">
 				<Collapsible collapsed={!showCalc}>
-					<p class="bold">Zonder renteaftrek bedraagt de totale inkomstenbelasting</p>
+					<p class="bold">
+						Inkomstenbelasting Zonder renteaftrek bedraagt de totale inkomstenbelasting
+					</p>
 					<ul>
 						<li>
 							<Tooltip tip="Jaarsalaris">{formatPrice(salary)}</Tooltip> * <Tooltip
-								tip="Inkomstenbelasting">{taxRate}%</Tooltip
+								tip="Inkomstenbelasting">{formatPercentage(taxRate)}</Tooltip
 							> = <Tooltip tip="Belastbaar inkomen">{formatPrice(taxableIncome)}</Tooltip>.
 						</li>
 					</ul>
@@ -93,7 +144,7 @@
 					<ul>
 						<li>
 							<Tooltip tip="Hypotheek">{formatPrice(mortgage)}</Tooltip> * <Tooltip
-								tip="Hypotheekrente">{mortgageInterest}%</Tooltip
+								tip="Hypotheekrente">{formatPercentage(mortgageInterest)}</Tooltip
 							> = <Tooltip tip="Hypotheekrente kosten per jaar"
 								>{formatPrice(mortgageCostPerYear)}</Tooltip
 							>.
@@ -112,7 +163,7 @@
 						<li>
 							<Tooltip tip="Belastbaar inkomen met aftrek van de hypotheek rente kosten per jaar"
 								>{formatPrice(incomeMinusMortgageCostPerYear)}</Tooltip
-							> * <Tooltip tip="Inkomstenbelasting">{taxRate}%</Tooltip> = <Tooltip
+							> * <Tooltip tip="Inkomstenbelasting">{formatPercentage(taxRate)}</Tooltip> = <Tooltip
 								tip="Belastbaar inkomen na hypotheekrenteaftrek"
 								>{formatPrice(taxableIncomeAfterDeduction)}</Tooltip
 							>
@@ -158,12 +209,6 @@
 			</div>
 		</div>
 	</div>
-	<!-- <div class="marleen-mode">
-		Marleen mode 💁‍♀️ <Switch
-			onToggle={(on) => (toggleMarleenMode = on)}
-			toggled={toggleMarleenMode}
-		/>
-	</div> -->
 </div>
 
 <style>
@@ -184,18 +229,6 @@
 		list-style-type: circle;
 		padding: 0;
 	}
-	.marleen-mode {
-		top: 0;
-		right: 0;
-		padding: 1rem;
-		display: flex;
-		gap: 1rem;
-		font-size: 1rem;
-		align-items: center;
-		margin: 0 auto;
-		justify-content: center;
-		padding: 1rem;
-	}
 	.show-calc {
 		position: absolute;
 		top: 0;
@@ -209,17 +242,18 @@
 		gap: 1rem;
 		align-items: center;
 		box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.15);
+		white-space: nowrap;
 	}
 	.container {
 		max-width: 32rem;
 		margin: 0 auto;
 	}
 	h1 {
-		text-align: center;
+		text-align: left;
 		text-transform: uppercase;
 		letter-spacing: 0.1rem;
 		font-size: 2rem;
-		margin: 0 auto;
+		margin: 2rem auto;
 	}
 	.bold {
 		font-weight: bold;
@@ -228,6 +262,7 @@
 	.card {
 		margin: 2rem 0;
 		box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.25);
+        border-radius: 20px;
 	}
 	.top,
 	.bottom {
@@ -246,10 +281,6 @@
 		padding-top: 3rem;
 		border-radius: 0 0 20px 20px;
 	}
-	.right {
-		position: absolute;
-		right: -1.5rem;
-	}
 	@media screen and (max-width: 36rem) {
 		h1 {
 			font-size: 1.25rem;
@@ -260,7 +291,6 @@
 		.show-calc {
 			font-size: 0.75rem;
 			padding: 0.75rem;
-			white-space: nowrap;
 		}
 	}
 </style>
