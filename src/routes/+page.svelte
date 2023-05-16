@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Analytics } from 'firebase/analytics';
+	import { logEvent, type Analytics } from 'firebase/analytics';
 	import Collapsible from '../lib/components/collapsible/collapsible.svelte';
 	import Input from '../lib/components/input/input.svelte';
 	import Label from '../lib/components/label/label.svelte';
@@ -11,6 +11,8 @@
 	import CalculationRow from '$lib/components/calculation-row/calculation-row.svelte';
 	import { writable } from 'svelte/store';
 
+	const firebase = initFirebase();
+	const analytics = firebase.analytics;
 	const isClient = typeof window !== 'undefined';
 	const darkModeTheme = {
 		'--bg': '#271F59',
@@ -73,8 +75,6 @@
 	let taxRate = getTaxRateBySalary($salary);
 	let showCalc = persistBoolean('showCalc', false);
 	let darkMode = persistBoolean('darkMode', false);
-    let analytics: Analytics;
-    let logEvent = () => {};
 	$: fontFamily = 'Poppins, sans-serif';
 	$: mortgageCostPerYear = ($mortgage / 100) * $mortgageInterest;
 	$: incomeMinusMortgageCostPerYear = $salary - mortgageCostPerYear;
@@ -111,7 +111,7 @@
 	const onTaxRateChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		taxRate = Number(target.value);
-		logEvent(analytics, 'tax_rate_change', { taxRate: $taxRate });
+		logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
 	};
 	const setTheme = (theme: Record<string, string>) => {
         if (!isClient) {
@@ -126,15 +126,6 @@
 		const theme = $darkMode ? darkModeTheme : lightModeTheme;
 		setTheme(theme);
 	};
-    onMount(async () => {
-        if (!isClient) {
-            return;
-        }
-		const firebase = initFirebase();
-		analytics = firebase.analytics;
-        const module = await import('firebase/analytics');
-        logEvent = module.logEvent;
-	});
 
 	onMount(() => {
 		setTheme($darkMode ? darkModeTheme : lightModeTheme);
