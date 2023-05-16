@@ -95,23 +95,23 @@
 	const onMortgageChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		mortgage.update(() => Number(target.value));
-		logEvent(analytics, 'mortgage_change', { mortgage: mortgage });
+		logEvent(analytics, 'mortgage_change', { mortgage: $mortgage });
 	};
 	const onMortgageInterestChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		mortgageInterest.update(() => Number(target.value));
-		logEvent(analytics, 'mortgage_interest_change', { mortgageInterest: mortgageInterest });
+		logEvent(analytics, 'mortgage_interest_change', { mortgageInterest: $mortgageInterest });
 	};
 	const onSalaryChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		salary.update(() => Number(target.value));
 		taxRate = getTaxRateBySalary($salary);
-		logEvent(analytics, 'salary_change', { salary: salary });
+		logEvent(analytics, 'salary_change', { salary: $salary });
 	};
 	const onTaxRateChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		taxRate = Number(target.value);
-		logEvent(analytics, 'tax_rate_change', { taxRate: taxRate });
+		logEvent(analytics, 'tax_rate_change', { taxRate: $taxRate });
 	};
 	const setTheme = (theme: Record<string, string>) => {
         if (!isClient) {
