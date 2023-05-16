@@ -280,7 +280,7 @@
 				</CalculationRow>
 				<div class="show-calc">
 					<label for="toggle"
-						>{#if showCalc}Verberg berekening{:else}Toon berekening{/if}</label
+						>{#if $showCalc}Verberg berekening{:else}Toon berekening{/if}</label
 					><Switch onToggle={(on) => showCalc.update(() => on)} id="toggle" toggled={$showCalc} />
 				</div>
 			</div>
